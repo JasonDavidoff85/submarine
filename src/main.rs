@@ -18,7 +18,7 @@ const SIZE: usize = 8;
 ///  /
 /// x
 /// East
-type Field = [[[bool; SIZE]; SIZE]; SIZE];
+type Field = [[[State; SIZE]; SIZE]; SIZE];
 
 enum Direction {
     North,
@@ -26,28 +26,37 @@ enum Direction {
     East,
     West
 }
+
+#[derive(Clone, Copy)]
+#[derive(PartialEq)]
+enum State {
+    Water,
+    Sub,
+    Wreck,
+}
+
 struct Player {
     field: Field,
 }
 
 impl Player {
     fn new() -> Self {
-        Player { field: [[[false; SIZE]; SIZE]; SIZE] }
+        Player { field: [[[State::Water; SIZE]; SIZE]; SIZE] }
     }
 
-    fn set_coord(&mut self, coord: &Coord) {
-        self.field[coord.x][coord.z][coord.y] = true;
+    fn set_coord(&mut self, coord: &Coord, state: State) {
+        self.field[coord.x][coord.z][coord.y] = state;
     }
 
-    fn set_line(&mut self, line: &Line) {
+    fn set_line(&mut self, line: &Line, state: State) {
         for i in &line.coords {
-            self.set_coord(&i);
+            self.set_coord(&i, state);
         }
     }
 
     fn is_empty(&self, coord: &Coord) -> bool {
         if coord.x < SIZE && coord.y < SIZE && coord.z < SIZE {
-            self.field[coord.x][coord.y][coord.z] == false
+            self.field[coord.x][coord.z][coord.y] == State::Water
         } else {
             return false
         }
@@ -58,6 +67,9 @@ impl Player {
         let mut sline = Line::new();
         match dir {
             Direction::North => {
+                if coord.y < sub.len - 1 {
+                    return false
+                }
                 for i in 0..sub.len {
                     let c = Coord { x: coord.x, y: coord.y - i, z: coord.z };
                     if self.is_empty(&c) {
@@ -78,6 +90,9 @@ impl Player {
                 }       
             },
             Direction::East => {
+                if coord.x < sub.len - 1 {
+                    return false
+                }
                 for i in 0..sub.len {
                     let c = Coord { x: coord.x - i, y: coord.y, z: coord.z };
                     if self.is_empty(&c) {
@@ -88,8 +103,11 @@ impl Player {
                 }       
             },
             Direction::West => {
+                if coord.y < sub.len - 1 {
+                    return false
+                }
                 for i in 0..sub.len {
-                    let c = Coord { x: coord.x + i, y: coord.y - i, z: coord.z };
+                    let c = Coord { x: coord.x + i, y: coord.y, z: coord.z };
                     if self.is_empty(&c) {
                         sline.coords.push(c);
                     } else {
@@ -99,11 +117,81 @@ impl Player {
                 }       
             }
         }
-        self.set_line(&sline);
+        self.set_line(&sline, State::Sub);
         sub.line = sline;
         return true
     }
+
+    pub fn print_face(&self, face: Direction) {
+        match face {
+            Direction::North => {
+                // print xz plane
+                // x[size] on left
+                for z in (0..SIZE).rev() {
+                    for x in (0..SIZE).rev() {
+                        let mut total = 0;
+                        for y in 0..SIZE {
+                            if self.field[x][z][y] == State::Sub {
+                                total += 1;
+                            }
+                        }
+                        print!("{}", total);
+                    }
+                    print!("\n")
+                }
+            },
+            Direction::South => {
+                // print xz plane
+                // x[0] on left
+                for z in (0..SIZE).rev() {
+                    for x in 0..SIZE {
+                        let mut total = 0;
+                        for y in 0..SIZE {
+                            if self.field[x][z][y] == State::Sub {
+                                total += 1;
+                            }
+                        }
+                        print!("{}", total);
+                    }
+                    print!("\n")
+                }
+            },
+            Direction::East => {
+                // print zy plane
+                // y[0] on left
+                for z in (0..SIZE).rev() {
+                    for y in 0..SIZE {
+                        let mut total = 0;
+                        for x in 0..SIZE {
+                            if self.field[x][z][y] == State::Sub {
+                                total += 1;
+                            }
+                        }
+                        print!("{}", total);
+                    }
+                    print!("\n")
+                }
+            },
+            Direction::West => {
+                // print zy plane
+                // y[size] on left
+                for z in (0..SIZE).rev() {
+                    for y in (0..SIZE).rev() {
+                        let mut total = 0;
+                        for x in 0..SIZE {
+                            if self.field[x][z][y] == State::Sub {
+                                total += 1;
+                            }
+                        }
+                        print!("{}", total);
+                    }
+                    print!("\n")
+                }
+            }
+        }
+    }
 }
+
 
 impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -111,7 +199,7 @@ impl fmt::Display for Player {
         for (x, i) in self.field.iter().enumerate() {
             for j in 0..i.len() {
                 for (y,k) in i.iter().enumerate() {
-                    if k[j] {
+                    if k[j] == State::Sub {
                         view[x][y] += 1;
                     }
                 }
@@ -128,13 +216,15 @@ impl fmt::Display for Player {
 }
 
 
+
+
 fn main() {
 
     // let mut player = Player::new();
-    let a = Coord {x: 1, y: 2, z: 3};
-    let mut line = Line::new();
-    line.coords.push(Coord {x: 1,y: 2,z: 3});
-    let b = Coord {x: 1, y: 2, z: 3};
+    // let a = Coord {x: 1, y: 2, z: 3};
+    // let mut line = Line::new();
+    // line.coords.push(Coord {x: 1,y: 2,z: 3});
+    // let b = Coord {x: 1, y: 2, z: 3};
 
     // let result = a.in_line(&line);
     // match result {
@@ -145,8 +235,12 @@ fn main() {
 
     let mut player = Player::new();
     let mut sub = Sub::new(3);
-    println!("{}",player.place_sub(&mut sub, &Coord { x: 0, y: 0, z: 0 }, Direction::North));
-    println!("{}", player);
+    let mut sub2 = Sub::new(3);
+    
+    println!("{}",player.place_sub(&mut sub, &Coord { x: 0, y: 2, z: 0}, Direction::North));
+    println!("{}",player.place_sub(&mut sub2, &Coord { x: 4, y: 3, z: 0}, Direction::West));
+    
+    player.print_face(Direction::North);
 }
 
 // fn print_field(field: &Field) {
