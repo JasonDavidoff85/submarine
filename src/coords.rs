@@ -1,5 +1,6 @@
 use std::string;
 
+#[derive(Debug)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,
@@ -24,6 +25,7 @@ impl Coord {
     }
 }
 
+#[derive(Debug)]
 pub struct Line {
     pub coords: Vec<Coord>
 }
