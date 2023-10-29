@@ -1,5 +1,6 @@
 use crate::{Line, Direction, Coord, Sub, BombType, bombs::{Bomb, Sinker}};
 use core::fmt;
+use rand::prelude::*;
 
 const SIZE: usize = 8;
 
@@ -30,6 +31,14 @@ pub struct Player {
 impl Player {
     pub fn new() -> Self {
         Player { field: [[[State::Water; SIZE]; SIZE]; SIZE], balance: 1000 }
+    }
+
+    pub fn random_coord() -> Coord {
+        Coord{
+            x: rand::thread_rng().gen_range(0..SIZE),
+            y: rand::thread_rng().gen_range(0..SIZE), 
+            z: rand::thread_rng().gen_range(0..SIZE)
+        }
     }
 
     fn set_coord(&mut self, coord: &Coord, state: State) {
@@ -78,6 +87,9 @@ impl Player {
         }
     }
 
+    /// Tries to place sub at coord and facing in direction.
+    /// Returns true if successful and false if there is something
+    /// in the way
     pub fn place_sub(&mut self, sub: &mut Sub, coord: &Coord, dir: Direction) -> bool {
         let mut sline = Line::new();
         match dir {
@@ -138,11 +150,14 @@ impl Player {
     }
 
     pub fn print_face(&self, face: Direction) {
+        
         match face {
             Direction::North => {
                 // print xz plane
                 // x[size] on left
+                println!("Z\n");
                 for z in (0..SIZE).rev() {
+                    print!("{} |", z);
                     for x in (0..SIZE).rev() {
                         let mut total = 0;
                         for y in 0..SIZE {
@@ -150,15 +165,22 @@ impl Player {
                                 total += 1;
                             }
                         }
-                        print!("{}", total);
+                        print!("{} ", total);
                     }
-                    print!("\n")
+                    print!("\n  {:-<1$}\n", "", SIZE*2);
                 }
+                print!("   ");
+                for i in (0..SIZE).rev() {
+                    print!("{} ", i);
+                }
+                println!(" X");
             },
             Direction::South => {
                 // print xz plane
-                // x[0] on left
+                // x[0] on leftprint!("   ");
+                println!("Z\n");
                 for z in (0..SIZE).rev() {
+                    print!("{} |", z);
                     for x in 0..SIZE {
                         let mut total = 0;
                         for y in 0..SIZE {
@@ -166,15 +188,22 @@ impl Player {
                                 total += 1;
                             }
                         }
-                        print!("{}", total);
+                        print!("{} ", total);
                     }
-                    print!("\n")
+                    print!("\n  {:-<1$}\n", "", SIZE*2);
                 }
+                print!("   ");
+                for i in 0..SIZE {
+                    print!("{} ", i);
+                }
+                println!(" X");
             },
             Direction::East => {
                 // print zy plane
                 // y[0] on left
+                println!("Z\n");
                 for z in (0..SIZE).rev() {
+                    print!("{} |", z);
                     for y in 0..SIZE {
                         let mut total = 0;
                         for x in 0..SIZE {
@@ -182,15 +211,22 @@ impl Player {
                                 total += 1;
                             }
                         }
-                        print!("{}", total);
+                        print!("{} ", total);
                     }
-                    print!("\n")
+                    print!("\n  {:-<1$}\n", "", SIZE*2);
                 }
+                print!("   ");
+                for i in 0..SIZE {
+                    print!("{} ", i);
+                }
+                println!(" Y");
             },
             Direction::West => {
                 // print zy plane
                 // y[size] on left
+                println!("Z\n");
                 for z in (0..SIZE).rev() {
+                    print!("{} |", z);
                     for y in (0..SIZE).rev() {
                         let mut total = 0;
                         for x in 0..SIZE {
@@ -198,10 +234,15 @@ impl Player {
                                 total += 1;
                             }
                         }
-                        print!("{}", total);
+                        print!("{} ", total);
                     }
-                    print!("\n")
+                    print!("\n  {:-<1$}\n", "", SIZE*2);
                 }
+                print!("   ");
+                for i in (0..SIZE).rev() {
+                    print!("{} ", i);
+                }
+                println!(" Y");
             }
         }
     }
@@ -221,6 +262,7 @@ impl fmt::Display for Player {
             } 
         }
         for i in view {
+            print!("-");
             for j in i {
                 print!("{}", j);
             }

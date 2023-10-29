@@ -1,5 +1,6 @@
 use crate::{Line, Direction, Coord};
 
+#[derive(Debug)]
 pub struct Sub {
     pub id: u8,
     pub len: usize,

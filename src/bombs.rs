@@ -43,7 +43,7 @@ impl Bomb for Sinker {
         match &self.coord {
             Some(coord) => {
                 let mut area = Line::new();
-                for i in 1..self.radius {
+                for i in 0..self.radius {
                     area.coords.push(Coord{x: coord.x + i as usize, y: coord.y, z: coord.z });
                     area.coords.push(Coord{x: coord.x, y: coord.y + i as usize, z: coord.z });
                     area.coords.push(Coord{x: coord.x, y: coord.y, z: coord.z + i as usize});
