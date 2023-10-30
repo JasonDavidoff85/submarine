@@ -3,6 +3,7 @@ mod direction;
 mod bombs;
 mod player;
 mod sub;
+mod report;
 
 use core::fmt;
 use std::io;
@@ -13,7 +14,7 @@ use direction::{
 };
 use coords::{
     Coord,
-    Line
+    Geometry
 };
 use bombs::BombType;
 use player::Player;
@@ -26,7 +27,8 @@ use crate::bombs::Sinker;
 
 fn main() {
 
-    let mut player = Player::new();
+    let mut player1 = Player::new();
+    let mut player2 = Player::new();
     // let mut sub = Sub::new(3);
     // let mut sub2 = Sub::new(3);
     
@@ -40,10 +42,20 @@ fn main() {
     
     const NUM_SHIPS: usize = 5;
     let ship_sizes: [usize; NUM_SHIPS] = [2, 3, 4, 4, 5];
+
     for i in ship_sizes {
         loop {
             let mut s = Sub::new(i);
-            if !player.place_sub(&mut s, &Player::random_coord(), random_direction()) {
+            if !player1.place_sub(&mut s, &Player::random_coord(), random_direction()) {
+                continue;
+            } else {
+                println!("Added: {:#?}", s);
+                break
+            }
+        }
+        loop {
+            let mut s = Sub::new(i);
+            if !player2.place_sub(&mut s, &Player::random_coord(), random_direction()) {
                 continue;
             } else {
                 println!("Added: {:#?}", s);
@@ -52,14 +64,21 @@ fn main() {
         }
     }
 
+    let c = Player::random_coord();
+    let mut bomb = player1.buy_bomb::<Sinker>().unwrap();
+    bomb.coord = Some(c);
+    println!("Launching bomb at: {:?}", bomb.get_geometry());
+    let res = bomb.launch(&mut player2);
+    println!("Hit: {:#?}", res.hit);
+
     println!("North");
-    player.print_face(Direction::North);
+    player1.print_face(Direction::North);
     println!("\nSouth");
-    player.print_face(Direction::South);
+    player1.print_face(Direction::South);
     println!("\nEast");
-    player.print_face(Direction::East);
+    player1.print_face(Direction::East);
     println!("\nWest");
-    player.print_face(Direction::West);
+    player1.print_face(Direction::West);
     
 
     // loop {

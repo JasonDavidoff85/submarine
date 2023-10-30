@@ -1,4 +1,4 @@
-use crate::{Line, Direction, Coord, Sub, BombType, bombs::{Bomb, Sinker}};
+use crate::{Geometry, Direction, Coord, Sub, BombType, bombs::{Bomb, Sinker}, report::Report};
 use core::fmt;
 use rand::prelude::*;
 
@@ -44,20 +44,30 @@ impl Player {
     fn set_coord(&mut self, coord: &Coord, state: State) {
         self.field[coord.x][coord.z][coord.y] = state;
     }
+    
+    fn valid_coord(coord: &Coord) -> bool {
+        coord.x < SIZE && coord.y < SIZE && coord.z < SIZE
+    }
 
-    fn set_line(&mut self, line: &Line, state: State) {
-        for i in &line.coords {
+    fn set_geometry(&mut self, geo: &Geometry, state: State) {
+        for i in &geo.coords {
             self.set_coord(&i, state);
         }
     }
 
     fn is_empty(&self, coord: &Coord) -> bool {
-        if coord.x < SIZE && coord.y < SIZE && coord.z < SIZE {
-            self.field[coord.x][coord.z][coord.y] == State::Water
-        } else {
-            return false
+        if Self::valid_coord(coord){
+            return self.field[coord.x][coord.z][coord.y] == State::Water;
         }
+        false
         
+    }
+
+    pub fn hits_ship(&self, coord: &Coord) -> bool {
+        if Self::valid_coord(coord) {
+            return self.field[coord.x][coord.z][coord.y] == State::Sub;
+        }
+        false
     }
 
     // pub fn buy_bomb(&mut self, bomb_type: BombType) -> Option<Box<dyn Bomb>> {
@@ -76,14 +86,14 @@ impl Player {
     //     }
     // }
 
-    pub fn buy_bomb<T: Bomb>(&mut self) -> Option<T> {
+    pub fn buy_bomb<T: Bomb>(&mut self) -> Result<T, &'static str> {
         let (bomb, new_bal) = T::get_bomb(self.balance);
         match bomb {
             Some(x) => {
                 self.balance = new_bal;
-                Some(x)
+                Ok(x)
             },
-            None => None
+            None => Err("Insufficient Balance")
         }
     }
 
@@ -91,7 +101,7 @@ impl Player {
     /// Returns true if successful and false if there is something
     /// in the way
     pub fn place_sub(&mut self, sub: &mut Sub, coord: &Coord, dir: Direction) -> bool {
-        let mut sline = Line::new();
+        let mut sline = Geometry::new();
         match dir {
             Direction::North => {
                 if coord.y < sub.len - 1 {
@@ -144,8 +154,8 @@ impl Player {
                 }       
             }
         }
-        self.set_line(&sline, State::Sub);
-        sub.line = sline;
+        self.set_geometry(&sline, State::Sub);
+        sub.geo = sline;
         return true
     }
 

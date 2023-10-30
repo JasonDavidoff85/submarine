@@ -1,6 +1,6 @@
 use std::string;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,
@@ -15,7 +15,7 @@ impl Coord {
     }
 
     /// returns index of where in line
-    pub fn in_line(&self, line: &Line) -> Option<usize> {
+    pub fn in_line(&self, line: &Geometry) -> Option<usize> {
         for (i, coord) in line.coords.iter().enumerate() {
             if self.equals(coord) {
                 return Some(i);
@@ -26,13 +26,13 @@ impl Coord {
 }
 
 #[derive(Debug)]
-pub struct Line {
+pub struct Geometry {
     pub coords: Vec<Coord>
 }
 
-impl Line {
+impl Geometry {
     pub fn new() -> Self {
-        return Line {coords: Vec::new()}
+        return Geometry {coords: Vec::new()}
     }
     pub fn includes_coord(&self, coord: Coord) {
 

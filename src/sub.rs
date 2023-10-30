@@ -1,10 +1,10 @@
-use crate::{Line, Direction, Coord};
+use crate::{Geometry, Direction, Coord};
 
 #[derive(Debug)]
 pub struct Sub {
     pub id: u8,
     pub len: usize,
-    pub line: Line,
+    pub geo: Geometry,
 }
 
 impl Sub {
@@ -12,7 +12,7 @@ impl Sub {
         Sub {
             len,
             id: 0,
-            line: Line::new()
+            geo: Geometry::new()
         }
     }
 }

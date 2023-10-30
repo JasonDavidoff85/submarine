@@ -2,7 +2,7 @@
 // stright line goes across field
 // drop bombs explode with radius
 
-use crate::{coords::{Line, Coord}, direction::Direction};
+use crate::{coords::{Geometry, Coord}, direction::Direction, report::Report, player::Player};
 use std::marker::Sized;
 use std::any::Any;
 
@@ -26,8 +26,9 @@ pub struct Straight {
 pub trait Bomb {
     fn as_any(&self) -> &dyn Any;
     fn bomb_type(&self) -> BombType;
-    fn get_geometry(&self) -> Option<Line>;
+    fn get_geometry(&self) -> Option<Geometry>;
     fn get_bomb(balance: i32 ) -> (Option<Self> , i32) where Self: Sized;
+    fn launch(&self, player: &mut Player) -> Report;
 }
 
 impl Bomb for Sinker {
@@ -39,17 +40,18 @@ impl Bomb for Sinker {
         BombType::Sinker
     }
 
-    fn get_geometry(&self) -> Option<Line> {
+    fn get_geometry(&self) -> Option<Geometry> {
         match &self.coord {
             Some(coord) => {
-                let mut area = Line::new();
+                let mut area = Geometry::new();
                 for i in 0..self.radius {
-                    area.coords.push(Coord{x: coord.x + i as usize, y: coord.y, z: coord.z });
-                    area.coords.push(Coord{x: coord.x, y: coord.y + i as usize, z: coord.z });
-                    area.coords.push(Coord{x: coord.x, y: coord.y, z: coord.z + i as usize});
-                    area.coords.push(Coord{x: coord.x - i as usize, y: coord.y, z: coord.z });
-                    area.coords.push(Coord{x: coord.x, y: coord.y - i as usize, z: coord.z });
-                    area.coords.push(Coord{x: coord.x, y: coord.y, z: coord.z - i as usize});
+                    // area.coords.push(Coord{x: coord.x + i as usize, y: coord.y, z: coord.z });
+                    // area.coords.push(Coord{x: coord.x, y: coord.y + i as usize, z: coord.z });
+                    // area.coords.push(Coord{x: coord.x, y: coord.y, z: coord.z + i as usize});
+                    // area.coords.push(Coord{x: coord.x - i as usize, y: coord.y, z: coord.z });
+                    // area.coords.push(Coord{x: coord.x, y: coord.y - i as usize, z: coord.z });
+                    // area.coords.push(Coord{x: coord.x, y: coord.y, z: coord.z - i as usize});
+                    area.coords.push(Coord{x: coord.x as usize, y: coord.y, z: coord.z });
                 }
                 Some(area)
             },
@@ -62,6 +64,17 @@ impl Bomb for Sinker {
         } else {
             (None, balance)
         }
+    }
+
+    fn launch(&self, player: &mut Player) -> Report {
+        let mut report = Report::new();
+        for i in self.get_geometry().unwrap().coords {
+            report.area.coords.push(i);
+            if player.hits_ship(&i) {
+                report.hit.coords.push(i);
+            }
+        }
+        report
     }
 }
 
